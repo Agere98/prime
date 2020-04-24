@@ -63,18 +63,25 @@ int find_primes(long long lb, const long long ub)
 
 int main(const int argc, char* argv[])
 {
+	if (argc < 4)
+	{
+		printf("Parametry: M, N, num_threads");
+		return 0;
+	}
+	const auto num_threads = strtol(argv[3], nullptr, 0);
 	const auto m = strtoll(argv[1], nullptr, 0);
 	const auto n = strtoll(argv[2], nullptr, 0);
 	// Parametry skrajne: 288230378836066313 288230379372937224
-	if (n > MAX_UB || (n - m + 1) > MAX_WIDTH)
+	if (m < 1L || n < 1L || m > n || n > MAX_UB || (n - m + 1L) > MAX_WIDTH)
 	{
-		printf("Nieprawidlowy przedzial.\n");
+		printf("Nieprawidłowy przedział.\n");
 		return 0;
 	}
+	omp_set_num_threads(num_threads);
 	const auto start = omp_get_wtime();
 	const auto p = find_primes(m, n);
 	const auto stop = omp_get_wtime();
-	if (argc > 3)
+	if (argc > 4)
 	{
 		for (auto i = 0; i < p; i++)
 		{
