@@ -51,7 +51,7 @@ int find_primes(long long lb, const long long ub)
 		// Wyznaczanie liczb pierwszych w przedziale [lb, ub]
 		mark = 2;
 		if (lb < 2LL)lb = 2LL;
-#pragma omp for
+#pragma omp for schedule(dynamic)
 		for (auto i = 0; i < count; i++)
 		{
 			const auto prime = primes[i];
