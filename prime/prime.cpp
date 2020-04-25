@@ -19,35 +19,54 @@ long long primes[1 << 25];
 
 int find_primes(long long lb, const long long ub)
 {
-	const auto sq = (int)sqrt(ub);
 	auto count = 0;
-	// Wyznaczanie liczb pierwszych mniejszych lub równych sqrt(ub)
+	const auto sq = (int)sqrt(ub);
 	char mark = 1;
-	for (auto i = 0; i < (sq - 1) / 2; i++)
+#pragma omp parallel
 	{
-		if (sieve[i] == mark)continue;
-		const auto prime = 2 * i + 3;
-		primes[count++] = prime;
-		if ((long long)prime * (long long)prime > sq)continue;
-		for (auto j = INDEX(prime * prime); j <= INDEX(sq); j += prime)
+		auto timer = omp_get_wtime();
+		// Wyznaczanie liczb pierwszych mniejszych lub równych sqrt(ub)
+#pragma omp for schedule(dynamic)
+		for (auto i = 0; i < (sq - 1) / 2; i++)
 		{
-			sieve[j] = mark;
+			if (sieve[i] == mark)continue;
+			const auto prime = 2 * i + 3;
+			if ((long long)prime * (long long)prime > sq)break;
+			for (auto j = INDEX(prime * prime); j <= INDEX(sq); j += prime)
+			{
+				sieve[j] = mark;
+			}
 		}
-	}
-	// Wyznaczanie liczb pierwszych w przedziale [lb, ub]
-	mark = 2;
-	if (lb < 2L)lb = 2L;
-	for (auto i = 0; i < count; i++)
-	{
-		const auto prime = primes[i];
-		auto start = lb - lb % prime;
-		if (start % 2 == 0)start += prime;
-		if (start < lb || start == prime)start += 2 * prime;
-		for (auto j = INDEX_B(start, lb); j <= INDEX_B(ub, lb); j += prime)
+#pragma omp single
+		for (auto i = 0; i < (sq - 1) / 2; i++)
 		{
-			sieve[j] = mark;
+			if (sieve[i] != mark)
+			{
+				primes[count++] = 2 * i + 3;
+			}
 		}
+		timer = omp_get_wtime() - timer;
+		printf("Faza 1: %fs\n", timer);
+		timer = omp_get_wtime();
+		// Wyznaczanie liczb pierwszych w przedziale [lb, ub]
+		mark = 2;
+		if (lb < 2L)lb = 2L;
+#pragma omp for
+		for (auto i = 0; i < count; i++)
+		{
+			const auto prime = primes[i];
+			auto start = lb - lb % prime;
+			if (start % 2 == 0)start += prime;
+			if (start < lb || start == prime)start += 2 * prime;
+			for (auto j = INDEX_B(start, lb); j <= INDEX_B(ub, lb); j += prime)
+			{
+				sieve[j] = mark;
+			}
+		}
+		timer = omp_get_wtime() - timer;
+		printf("Faza 2: %fs\n", timer);
 	}
+	// Odczytywanie wyników
 	count = 0;
 	if (lb <= 2L && ub >= 2L)primes[count++] = 2L;
 	lb += 1L - (lb % 2L);
