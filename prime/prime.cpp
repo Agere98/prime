@@ -24,6 +24,8 @@ int find_primes(long long lb, const long long ub)
 	char mark = 1;
 #pragma omp parallel
 	{
+		const auto id = omp_get_thread_num();
+		const auto total = omp_get_num_threads();
 		auto timer = omp_get_wtime();
 		// Wyznaczanie liczb pierwszych mniejszych lub równych sqrt(ub)
 #pragma omp for schedule(dynamic)
@@ -51,14 +53,16 @@ int find_primes(long long lb, const long long ub)
 		// Wyznaczanie liczb pierwszych w przedziale [lb, ub]
 		mark = 2;
 		if (lb < 2LL)lb = 2LL;
-#pragma omp for schedule(dynamic)
+		const auto interval = (ub - lb) / total;
+		const auto _lb = lb + id * interval;
+		const auto _ub = (id + 1 == total) ? ub : _lb + interval - 1LL;
 		for (auto i = 0; i < count; i++)
 		{
 			const auto prime = primes[i];
-			auto start = lb - lb % prime;
+			auto start = _lb - _lb % prime;
 			if (start % 2 == 0)start += prime;
-			if (start < lb || start == prime)start += 2 * prime;
-			for (auto j = INDEX_B(start, lb); j <= INDEX_B(ub, lb); j += prime)
+			if (start < _lb || start == prime)start += 2 * prime;
+			for (auto j = INDEX_B(start, lb); j <= INDEX_B(_ub, lb); j += prime)
 			{
 				sieve[j] = mark;
 			}
