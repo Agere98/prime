@@ -10,7 +10,7 @@
 
 #define MAX_SIZE (1<<28) // 268 435 456
 #define MAX_PRIME (long long)(2*MAX_SIZE+3) // 536 870 915
-#define MAX_UB (MAX_PRIME*MAX_PRIME-1L) // 288 230 379 372 937 224
+#define MAX_UB (MAX_PRIME*MAX_PRIME-1LL) // 288 230 379 372 937 224
 #define MAX_WIDTH (2*MAX_SIZE) // 536 870 912
 #define INDEX(x) ((int)((x)-3)/2)
 #define INDEX_B(x, lb) ((int)((x)-(lb))/2)
@@ -42,7 +42,7 @@ int find_primes(long long lb, const long long ub)
 		{
 			if (sieve[i] != mark)
 			{
-				primes[count++] = 2 * i + 3;
+				primes[count++] = 2LL * i + 3LL;
 			}
 		}
 		timer = omp_get_wtime() - timer;
@@ -50,7 +50,7 @@ int find_primes(long long lb, const long long ub)
 		timer = omp_get_wtime();
 		// Wyznaczanie liczb pierwszych w przedziale [lb, ub]
 		mark = 2;
-		if (lb < 2L)lb = 2L;
+		if (lb < 2LL)lb = 2LL;
 #pragma omp for
 		for (auto i = 0; i < count; i++)
 		{
@@ -68,8 +68,8 @@ int find_primes(long long lb, const long long ub)
 	}
 	// Odczytywanie wyników
 	count = 0;
-	if (lb <= 2L && ub >= 2L)primes[count++] = 2L;
-	lb += 1L - (lb % 2L);
+	if (lb <= 2LL && ub >= 2LL)primes[count++] = 2LL;
+	lb += 1LL - (lb % 2LL);
 	for (auto i = 0; lb + i + i <= ub; i++)
 	{
 		if (sieve[i] != mark)
@@ -91,7 +91,7 @@ int main(const int argc, char* argv[])
 	const auto m = strtoll(argv[1], nullptr, 0);
 	const auto n = strtoll(argv[2], nullptr, 0);
 	// Parametry skrajne: 288230378836066313 288230379372937224
-	if (m < 1L || n < 1L || m > n || n > MAX_UB || (n - m + 1L) > MAX_WIDTH)
+	if (m < 1LL || n < 1LL || m > n || n > MAX_UB || (n - m + 1LL) > MAX_WIDTH)
 	{
 		printf("Nieprawidłowy przedział.\n");
 		return 0;
